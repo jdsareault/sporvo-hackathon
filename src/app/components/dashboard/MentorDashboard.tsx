@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 
 interface Student {
   _id: string
@@ -11,24 +12,46 @@ interface Student {
 }
 
 export default function MentorDashboard() {
+  const { data: session, status } = useSession()
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchStudents = async () => {
+      if (status !== 'authenticated' || session?.user?.userType !== 'MENTOR') {
+        console.error('User not authenticated or not a mentor')
+        setLoading(false)
+        return
+      }
+
       try {
         const response = await fetch('/api/mentor/students')
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
         const data = await response.json()
+        if (!Array.isArray(data)) {
+          throw new Error('Expected array of students')
+        }
         setStudents(data)
       } catch (error) {
         console.error('Error fetching students:', error)
+        setStudents([])
       } finally {
         setLoading(false)
       }
     }
 
     fetchStudents()
-  }, [])
+  }, [status, session])
+
+  if (status === 'loading') {
+    return <div>Loading...</div>
+  }
+
+  if (status === 'unauthenticated' || session?.user?.userType !== 'MENTOR') {
+    return <div>Access denied. Please log in as a mentor.</div>
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -37,7 +60,7 @@ export default function MentorDashboard() {
         <div className="col-span-3 bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Your Students</h2>
-            <Link 
+            <Link
               href="/students/add"
               className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
             >
@@ -79,13 +102,13 @@ export default function MentorDashboard() {
                         <div className="text-sm text-gray-900">{student.totalPoints}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link 
+                        <Link
                           href={`/students/${student._id}/edit`}
                           className="text-blue-600 hover:text-blue-900 mr-4"
                         >
                           Edit
                         </Link>
-                        <Link 
+                        <Link
                           href={`/students/${student._id}/scores`}
                           className="text-green-600 hover:text-green-900"
                         >
@@ -104,19 +127,19 @@ export default function MentorDashboard() {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
           <div className="space-y-4">
-            <Link 
+            <Link
               href="/scores/batch"
               className="block w-full text-center bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
             >
               Batch Score Entry
             </Link>
-            <Link 
+            <Link
               href="/reports"
               className="block w-full text-center bg-gray-100 text-gray-700 py-2 px-4 rounded hover:bg-gray-200"
             >
               View Reports
             </Link>
-            <Link 
+            <Link
               href="/messages"
               className="block w-full text-center bg-gray-100 text-gray-700 py-2 px-4 rounded hover:bg-gray-200"
             >
