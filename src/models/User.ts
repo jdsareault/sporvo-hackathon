@@ -25,7 +25,11 @@ const userSchema = new mongoose.Schema({
         required: true
     },
     school: String,
-    grade: String
+    grade: String,
+    mentor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
 }, {
     timestamps: true
 })
