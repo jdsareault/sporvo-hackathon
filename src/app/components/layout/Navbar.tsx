@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
 import { useState } from 'react'
+import Image from 'next/image'
 
 export default function Navbar() {
   const { data: session } = useSession()
@@ -13,8 +14,14 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold">
-              Sports Academy
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src="/sporvo.png"
+                alt="Sporvo Logo"
+                width={165}
+                height={60}
+              />
+      
             </Link>
           </div>
           
