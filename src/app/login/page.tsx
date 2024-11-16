@@ -15,7 +15,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [error, setError] = useState<string>('')
   const [loading, setLoading] = useState(false)
-  
+
   const [formData, setFormData] = useState<LoginData>({
     email: '',
     password: '',
@@ -32,15 +32,17 @@ export default function LoginPage() {
         redirect: false,
         email: formData.email,
         password: formData.password,
-        userType: formData.userType
+        userType: formData.userType,
+        callbackUrl: '/dashboard'
       })
 
       if (result?.error) {
         throw new Error(result.error)
       }
 
-      // Redirect to dashboard based on user type
-      router.push('/dashboard')
+      if (result?.ok) {
+        router.push('/dashboard')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -52,7 +54,7 @@ export default function LoginPage() {
     <Layout>
       <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-6">Login</h1>
-        
+
         {/* User Type Selection */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold mb-4">I am logging in as a:</h2>
@@ -61,8 +63,8 @@ export default function LoginPage() {
               type="button"
               onClick={() => setFormData({ ...formData, userType: 'STUDENT' })}
               className={`p-4 text-center rounded-lg border-2 transition-all
-                ${formData.userType === 'STUDENT' 
-                  ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                ${formData.userType === 'STUDENT'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
                   : 'border-gray-200 hover:border-gray-300'}`}
             >
               <div className="font-semibold mb-1">Student</div>
@@ -72,8 +74,8 @@ export default function LoginPage() {
               type="button"
               onClick={() => setFormData({ ...formData, userType: 'MENTOR' })}
               className={`p-4 text-center rounded-lg border-2 transition-all
-                ${formData.userType === 'MENTOR' 
-                  ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                ${formData.userType === 'MENTOR'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
                   : 'border-gray-200 hover:border-gray-300'}`}
             >
               <div className="font-semibold mb-1">Mentor</div>
@@ -95,7 +97,7 @@ export default function LoginPage() {
               type="email"
               className="w-full p-2 border rounded"
               value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
           </div>
@@ -106,7 +108,7 @@ export default function LoginPage() {
               type="password"
               className="w-full p-2 border rounded"
               value={formData.password}
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
             />
           </div>
