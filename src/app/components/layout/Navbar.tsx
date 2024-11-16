@@ -17,7 +17,7 @@ export default function Navbar() {
               Sports Academy
             </Link>
           </div>
-          
+
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
               <Link href="/leaderboard" className="hover:bg-blue-700 px-3 py-2 rounded-md">
@@ -27,6 +27,9 @@ export default function Navbar() {
                 <>
                   <Link href="/dashboard" className="hover:bg-blue-700 px-3 py-2 rounded-md">
                     Dashboard
+                  </Link>
+                  <Link href="/messages" className="hover:bg-blue-700 px-3 py-2 rounded-md">
+                    Messages
                   </Link>
                   <button
                     onClick={() => signOut()}
