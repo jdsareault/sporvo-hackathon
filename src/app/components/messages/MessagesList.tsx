@@ -20,7 +20,7 @@ interface Thread {
 }
 
 export default function MessagesList() {
-    const { data: session } = useSession()
+    const { data: session, status } = useSession()
     const [threads, setThreads] = useState<Thread[]>([])
     const [selectedThread, setSelectedThread] = useState<string | null>(null)
     const [isNewMessageModalOpen, setIsNewMessageModalOpen] = useState(false)
@@ -28,28 +28,49 @@ export default function MessagesList() {
 
     useEffect(() => {
         const fetchThreads = async () => {
+            console.log('Session status:', status)
+            console.log('Session data:', session)
+
             try {
-                const response = await fetch('/api/messages/threads')
+                if (status !== 'authenticated' || !session?.user?.id) {
+                    console.log('Session not ready:', { status, session })
+                    return
+                }
+
+                const response = await fetch('/api/messages/threads', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'include',
+                })
+
+                console.log('API Response:', response.status)
+
                 if (!response.ok) {
+                    const errorData = await response.json()
+                    console.error('API Error Details:', errorData)
                     throw new Error(`HTTP error! status: ${response.status}`)
                 }
+
                 const data = await response.json()
+                console.log('Threads data:', data)
+
                 if (!Array.isArray(data)) {
                     throw new Error('Expected array of threads')
                 }
                 setThreads(data)
             } catch (error) {
                 console.error('Error fetching message threads:', error)
-                setThreads([]) // Set empty array as fallback
+                setThreads([])
             } finally {
                 setLoading(false)
             }
         }
 
-        if (session) {
+        if (status === 'authenticated') {
             fetchThreads()
         }
-    }, [session])
+    }, [session, status])
 
     return (
         <div className="flex h-[calc(100vh-200px)]">

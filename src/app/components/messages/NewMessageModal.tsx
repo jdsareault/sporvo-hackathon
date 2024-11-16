@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
 interface User {
     _id: string
@@ -19,6 +20,7 @@ export default function NewMessageModal({
     onClose,
     onThreadCreated
 }: NewMessageModalProps) {
+    const { data: session } = useSession()
     const [users, setUsers] = useState<User[]>([])
     const [selectedUser, setSelectedUser] = useState<string>('')
     const [message, setMessage] = useState('')
@@ -26,21 +28,43 @@ export default function NewMessageModal({
 
     useEffect(() => {
         const fetchUsers = async () => {
+            if (!session?.user?.id) {
+                console.log('No session available')
+                return
+            }
+
             try {
                 const response = await fetch('/api/users')
+                console.log('API Response status:', response.status)
+
                 const data = await response.json()
+                console.log('Raw API response:', data)
+
+                if ('error' in data) {
+                    console.error('API error:', data.error)
+                    setUsers([])
+                    return
+                }
+
+                if (!Array.isArray(data)) {
+                    console.error('Expected array of users but got:', data)
+                    setUsers([])
+                    return
+                }
+
                 setUsers(data)
             } catch (error) {
                 console.error('Error fetching users:', error)
+                setUsers([])
             } finally {
                 setLoading(false)
             }
         }
 
-        if (isOpen) {
+        if (isOpen && session?.user?.id) {
             fetchUsers()
         }
-    }, [isOpen])
+    }, [isOpen, session])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
