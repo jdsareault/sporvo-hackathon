@@ -52,7 +52,7 @@ export default function LoginPage() {
 
   return (
     <Layout>
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md text-black">
         <h1 className="text-2xl font-bold mb-6">Login</h1>
 
         {/* User Type Selection */}
