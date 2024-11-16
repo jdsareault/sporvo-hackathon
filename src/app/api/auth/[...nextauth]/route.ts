@@ -1,6 +1,16 @@
 import NextAuth from "next-auth"
 import GithubProvider from "next-auth/providers/github"
 import CredentialsProvider from "next-auth/providers/credentials"
+import dbConnect from '@/lib/dbConnect'
+import User from '@/models/User'
+import { compare } from 'bcryptjs'
+import { DefaultUser } from 'next-auth'
+
+declare module 'next-auth' {
+  interface User extends DefaultUser {
+    userType: 'STUDENT' | 'MENTOR'
+  }
+}
 
 const handler = NextAuth({
   providers: [
@@ -16,23 +26,50 @@ const handler = NextAuth({
         userType: { label: "User Type", type: "text" }
       },
       async authorize(credentials) {
-        // Add your authentication logic here
-        // Return null if user data could not be retrieved
-        return credentials ? { id: '1', name: 'Test', email: credentials.email } : null
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Please enter an email and password')
+        }
+
+        await dbConnect()
+
+        // Find user by email
+        const user = await User.findOne({ email: credentials.email })
+        if (!user) {
+          throw new Error('No user found with this email')
+        }
+
+        // Verify password
+        const isPasswordValid = await compare(credentials.password, user.password)
+        if (!isPasswordValid) {
+          throw new Error('Invalid password')
+        }
+
+        // Return user data
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          userType: user.userType
+        }
       }
     })
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.userType = user.userType
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.userType = token.userType as 'STUDENT' | 'MENTOR'
+      }
+      return session
+    }
+  },
   pages: {
     signIn: '/login',
-  },
-  callbacks: {
-    async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl + "/dashboard"
-    }
   }
 })
 
