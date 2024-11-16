@@ -30,10 +30,17 @@ export default function MessagesList() {
         const fetchThreads = async () => {
             try {
                 const response = await fetch('/api/messages/threads')
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`)
+                }
                 const data = await response.json()
+                if (!Array.isArray(data)) {
+                    throw new Error('Expected array of threads')
+                }
                 setThreads(data)
             } catch (error) {
                 console.error('Error fetching message threads:', error)
+                setThreads([]) // Set empty array as fallback
             } finally {
                 setLoading(false)
             }
